@@ -1408,6 +1408,44 @@ export function registerApiTriggers(
     },
   });
 
+  sdk.registerFunction(
+    "api::governance-delete-derived",
+    async (
+      req: ApiRequest<{
+        scope: "semantic" | "insights";
+        ids: string[];
+        reason?: string;
+      }>,
+    ): Promise<Response> => {
+      const authErr = checkAuth(req, secret);
+      if (authErr) return authErr;
+      if (
+        (req.body?.scope !== "semantic" && req.body?.scope !== "insights") ||
+        !Array.isArray(req.body?.ids)
+      ) {
+        return {
+          status_code: 400,
+          body: {
+            error: "scope must be semantic or insights; ids array is required",
+          },
+        };
+      }
+      const result = await sdk.trigger({
+        function_id: "mem::governance-delete-derived",
+        payload: req.body,
+      });
+      return { status_code: 200, body: result };
+    },
+  );
+  sdk.registerTrigger({
+    type: "http",
+    function_id: "api::governance-delete-derived",
+    config: {
+      api_path: "/agentmemory/governance/derived",
+      http_method: "DELETE",
+    },
+  });
+
   sdk.registerFunction("api::snapshots", 
     async (req: ApiRequest): Promise<Response> => {
       const authErr = checkAuth(req, secret);

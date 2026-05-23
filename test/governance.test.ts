@@ -133,6 +133,49 @@ describe("Governance Functions", () => {
     expect(remaining.length).toBe(3);
   });
 
+  it("governance-delete-derived removes semantic memories and insights", async () => {
+    await kv.set("mem:semantic", "sem_1", {
+      id: "sem_1",
+      fact: "Old semantic fact",
+    });
+    await kv.set("mem:semantic", "sem_2", {
+      id: "sem_2",
+      fact: "Kept semantic fact",
+    });
+    await kv.set("mem:insights", "ins_1", {
+      id: "ins_1",
+      title: "Old insight",
+    });
+
+    const semanticResult = (await sdk.trigger(
+      "mem::governance-delete-derived",
+      {
+        scope: "semantic",
+        ids: ["sem_1", "missing_sem"],
+        reason: "cleanup",
+      },
+    )) as { success: boolean; deleted: number; total: number };
+    const insightResult = (await sdk.trigger(
+      "mem::governance-delete-derived",
+      {
+        scope: "insights",
+        ids: ["ins_1"],
+        reason: "cleanup",
+      },
+    )) as { success: boolean; deleted: number; total: number };
+
+    expect(semanticResult.success).toBe(true);
+    expect(semanticResult.deleted).toBe(1);
+    expect(semanticResult.total).toBe(2);
+    expect(insightResult.success).toBe(true);
+    expect(insightResult.deleted).toBe(1);
+
+    const semantic = await kv.list("mem:semantic");
+    const insights = await kv.list("mem:insights");
+    expect(semantic).toHaveLength(1);
+    expect(insights).toHaveLength(0);
+  });
+
   it("audit-query returns audit entries", async () => {
     await sdk.trigger("mem::governance-delete", {
       memoryIds: ["mem_1"],

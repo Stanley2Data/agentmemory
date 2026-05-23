@@ -1,6 +1,6 @@
-export const GRAPH_EXTRACTION_SYSTEM = `You are a knowledge graph extraction engine. Given a compressed observation from a coding session, extract entities and relationships.
+export const GRAPH_EXTRACTION_SYSTEM = `你是 knowledge graph 提取引擎。给定 coding session 中的压缩 observation，提取 entities 和 relationships。
 
-Output format (XML):
+输出格式（XML）：
 <entities>
   <entity type="file|function|concept|error|decision|pattern|library|person" name="exact name">
     <property key="key">value</property>
@@ -10,11 +10,13 @@ Output format (XML):
   <relationship type="uses|imports|modifies|causes|fixes|depends_on|related_to" source="entity name" target="entity name" weight="0.1-1.0"/>
 </relationships>
 
-Rules:
-- Extract concrete entities only (real file paths, function names, library names)
-- Use the most specific type available
-- Weight relationships by how strong/direct the connection is
-- If no entities found, output empty tags`;
+规则：
+- 只提取具体 entities，例如真实文件路径、函数名、库名
+- entity type 必须使用 XML 示例中的英文枚举值，不要翻译
+- relationship type 必须使用 XML 示例中的英文枚举值，不要翻译
+- 使用可用的最具体 type
+- 根据连接强度和直接程度设置 relationship weight
+- 如果没有找到 entities，输出空标签`;
 
 export function buildGraphExtractionPrompt(
   observations: Array<{
@@ -28,8 +30,8 @@ export function buildGraphExtractionPrompt(
   const items = observations
     .map(
       (o, i) =>
-        `[${i + 1}] Type: ${o.type}\nTitle: ${o.title}\nNarrative: ${o.narrative}\nConcepts: ${(o.concepts ?? []).join(", ")}\nFiles: ${(o.files ?? []).join(", ")}`,
+        `[${i + 1}] 类型: ${o.type}\n标题: ${o.title}\n叙述: ${o.narrative}\n概念: ${(o.concepts ?? []).join(", ")}\n文件: ${(o.files ?? []).join(", ")}`,
     )
     .join("\n\n");
-  return `Extract entities and relationships from these observations:\n\n${items}`;
+  return `从这些 observations 中提取 entities 和 relationships：\n\n${items}`;
 }

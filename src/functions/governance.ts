@@ -1,5 +1,11 @@
 import type { ISdk } from "iii-sdk";
-import type { Memory, GovernanceFilter, AuditEntry } from "../types.js";
+import type {
+  Memory,
+  GovernanceFilter,
+  AuditEntry,
+  SemanticMemory,
+  Insight,
+} from "../types.js";
 import { KV } from "../state/schema.js";
 import type { StateKV } from "../state/kv.js";
 import { recordAudit, safeAudit, queryAudit } from "./audit.js";
@@ -151,6 +157,65 @@ export function registerGovernanceFunction(sdk: ISdk, kv: StateKV): void {
         deleted: successfulIds.length,
         failed: failures.length,
         failures: failures.length > 0 ? failures : undefined,
+      };
+    },
+  );
+
+  sdk.registerFunction(
+    "mem::governance-delete-derived",
+    async (data: {
+      scope: "semantic" | "insights";
+      ids: string[];
+      reason?: string;
+    }) => {
+      if (data.scope !== "semantic" && data.scope !== "insights") {
+        return {
+          success: false,
+          error: "scope must be one of: semantic, insights",
+        };
+      }
+      if (!Array.isArray(data.ids) || data.ids.length === 0) {
+        return { success: false, error: "ids array is required" };
+      }
+
+      const kvScope = data.scope === "semantic" ? KV.semantic : KV.insights;
+      let deleted = 0;
+      const deletedIds: string[] = [];
+      for (const id of data.ids) {
+        const existing =
+          data.scope === "semantic"
+            ? await kv.get<SemanticMemory>(kvScope, id)
+            : await kv.get<Insight>(kvScope, id);
+        if (!existing) continue;
+        await kv.delete(kvScope, id);
+        deleted++;
+        deletedIds.push(id);
+      }
+
+      await recordAudit(
+        kv,
+        "delete",
+        "mem::governance-delete-derived",
+        deletedIds,
+        {
+          scope: data.scope,
+          requested: data.ids.length,
+          deleted,
+          reason: data.reason || "manual derived memory deletion",
+        },
+      );
+
+      logger.info("Governance derived delete", {
+        scope: data.scope,
+        requested: data.ids.length,
+        deleted,
+      });
+
+      return {
+        success: true,
+        scope: data.scope,
+        deleted,
+        total: data.ids.length,
       };
     },
   );

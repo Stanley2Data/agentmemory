@@ -1,26 +1,26 @@
-export const SUMMARY_SYSTEM = `You are a session summarizer for an AI coding agent's memory system. Given all compressed observations from a coding session, produce a concise session summary.
+export const SUMMARY_SYSTEM = `你是 AI 编程代理记忆系统的 session 总结器。给定一个 coding session 中的所有压缩 observations，生成一份简洁的 session summary。
 
-Output EXACTLY this XML format with no additional text:
+只输出下面这个 XML 格式，不要添加任何额外文本：
 
 <summary>
-  <title>Short session title (max 100 chars)</title>
-  <narrative>3-5 sentence narrative of what was accomplished</narrative>
+  <title>简短 session 标题（最多 100 个字符）</title>
+  <narrative>用 3-5 句话叙述完成了什么</narrative>
   <decisions>
-    <decision>Key technical decision made</decision>
+    <decision>做出的关键技术决策</decision>
   </decisions>
   <files>
     <file>path/to/modified/file</file>
   </files>
   <concepts>
-    <concept>key concept from session</concept>
+    <concept>session 中的关键概念</concept>
   </concepts>
 </summary>
 
-Rules:
-- Focus on outcomes, not individual tool calls
-- Highlight decisions and their rationale
-- List all files that were created or modified
-- Concepts should be searchable terms for future context retrieval`
+规则：
+- 聚焦结果，而不是逐条工具调用
+- 突出决策及其理由
+- 列出所有创建或修改过的文件
+- concepts 应该是便于未来上下文检索的搜索词`
 
 export function buildSummaryPrompt(observations: Array<{
   type: string
@@ -32,9 +32,9 @@ export function buildSummaryPrompt(observations: Array<{
 }>): string {
   const lines = observations.map((obs, i) => {
     const facts = obs.facts.map((f) => `  - ${f}`).join('\n')
-    return `[${i + 1}] ${obs.type}: ${obs.title}\n${obs.narrative}\nFacts:\n${facts}\nFiles: ${obs.files.join(', ')}`
+    return `[${i + 1}] ${obs.type}: ${obs.title}\n${obs.narrative}\n事实:\n${facts}\n文件: ${obs.files.join(', ')}`
   })
-  return `Session observations (${observations.length} total):\n\n${lines.join('\n\n---\n\n')}`
+  return `Session observations（共 ${observations.length} 条）:\n\n${lines.join('\n\n---\n\n')}`
 }
 
 export const REDUCE_SYSTEM = `You are merging multiple partial summaries of the SAME coding session into one final session summary. The partials are chronological chunks of one continuous session — not separate sessions.

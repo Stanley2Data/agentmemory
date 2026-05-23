@@ -1,8 +1,8 @@
-export const VISION_DESCRIPTION_PROMPT = `Describe what this image shows in the context of software development. Extract:
-- What type of image this is (screenshot, diagram, mockup, terminal output, error, etc.)
-- Key entities visible (files, components, UI elements, error messages)
-- Relationships or flow shown
-- Any decisions, errors, or state visible
-- Text content visible in the image
+export const VISION_DESCRIPTION_PROMPT = `请在软件开发上下文中描述这张图片展示了什么。提取：
+- 这是什么类型的图片（截图、图表、mockup、终端输出、错误等）
+- 可见的关键实体（文件、组件、UI 元素、错误消息）
+- 展示出的关系或流程
+- 可见的任何决策、错误或状态
+- 图片中可见的文字内容
 
-Be concise but preserve all technically relevant details. Output plain text, no XML.`;
+保持简洁，但保留所有技术相关细节。输出纯文本，不要输出 XML。`;
