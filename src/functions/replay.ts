@@ -66,6 +66,68 @@ const LESSON_PATTERNS: RegExp[] = [
   /\b(prefer|avoid)\s[^.\n]{10,200}[.!\n]/gi,
 ];
 
+function compactText(text: string, maxLength: number): string {
+  const compact = text.replace(/\s+/g, " ").trim();
+  return compact.length > maxLength ? compact.slice(0, maxLength) : compact;
+}
+
+function isReplayMetadataText(text: string): boolean {
+  const compact = compactText(text, 1000).toLowerCase();
+  if (!compact) return true;
+  return (
+    compact.includes("<environment_context>") ||
+    compact.includes("</environment_context>") ||
+    compact.includes("<cwd>") ||
+    compact.includes("<current_date>") ||
+    compact.includes("<timezone>") ||
+    compact.includes("# agents.md instructions for") ||
+    compact.startsWith("<system-reminder>")
+  );
+}
+
+function firstInformativePrompt(rawObs: RawObservation[]): string | undefined {
+  for (const obs of rawObs) {
+    if (typeof obs.userPrompt !== "string") continue;
+    const text = compactText(obs.userPrompt, 300);
+    if (!isReplayMetadataText(text)) return text;
+  }
+  return undefined;
+}
+
+function buildCrystalNarrativePreview(
+  project: string,
+  rawObs: RawObservation[],
+  compressed: CompressedObservation[],
+  firstPrompt: string | undefined,
+): string {
+  if (firstPrompt && !isReplayMetadataText(firstPrompt)) {
+    return compactText(firstPrompt, 300);
+  }
+
+  for (const obs of rawObs) {
+    if (typeof obs.assistantResponse !== "string") continue;
+    const text = compactText(obs.assistantResponse, 300);
+    if (!isReplayMetadataText(text)) return text;
+  }
+
+  const narrative = compressed
+    .filter((c) => !isReplayMetadataText(c.narrative || c.title || ""))
+    .slice(0, 5)
+    .map((c) => c.narrative || c.title)
+    .filter(Boolean)
+    .join(" · ");
+  if (narrative) return compactText(narrative, 300);
+
+  const toolNames = Array.from(
+    new Set(rawObs.map((o) => o.toolName || o.hookType).filter(Boolean)),
+  ).slice(0, 5);
+  return compactText(
+    `Imported session for ${project || "unknown project"} with ${rawObs.length} observations` +
+      (toolNames.length > 0 ? `; tools: ${toolNames.join(", ")}` : ""),
+    300,
+  );
+}
+
 async function deriveCrystalAndLessons(
   kv: StateKV,
   sessionId: string,
@@ -161,14 +223,12 @@ async function deriveCrystalAndLessons(
   // Content-addressed on sessionId so re-importing the same session
   // upserts the crystal in place instead of creating a new one.
   const crystalId = fingerprintId("crystal", sessionId);
-  const narrativePreview = firstPrompt
-    ? firstPrompt.slice(0, 300)
-    : compressed
-        .slice(0, 5)
-        .map((c) => c.narrative || c.title)
-        .filter(Boolean)
-        .join(" · ")
-        .slice(0, 300);
+  const narrativePreview = buildCrystalNarrativePreview(
+    project,
+    rawObs,
+    compressed,
+    firstPrompt,
+  );
 
   try {
     const existingCrystal = await kv.get<Crystal>(KV.crystals, crystalId);
@@ -384,12 +444,7 @@ export function registerReplayFunctions(sdk: ISdk, kv: StateKV): void {
         const parsed = parseJsonlText(text, generateId("sess"));
         if (parsed.observations.length === 0) continue;
 
-        const firstPromptObs = parsed.observations.find(
-          (o) => typeof o.userPrompt === "string" && o.userPrompt.trim().length > 0,
-        );
-        const firstPrompt = firstPromptObs?.userPrompt
-          ? firstPromptObs.userPrompt.replace(/\s+/g, " ").trim().slice(0, 200)
-          : undefined;
+        const firstPrompt = firstInformativePrompt(parsed.observations);
 
         const existing = await kv.get<Session>(KV.sessions, parsed.sessionId);
         if (existing) {
@@ -403,7 +458,10 @@ export function registerReplayFunctions(sdk: ISdk, kv: StateKV): void {
           if (!existingTags.includes("jsonl-import")) {
             existing.tags = [...existingTags, "jsonl-import"];
           }
-          if (!existing.firstPrompt && firstPrompt) {
+          if (
+            firstPrompt &&
+            (!existing.firstPrompt || isReplayMetadataText(existing.firstPrompt))
+          ) {
             existing.firstPrompt = firstPrompt;
           }
           await kv.set(KV.sessions, existing.id, existing);

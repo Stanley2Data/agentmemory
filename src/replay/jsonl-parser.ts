@@ -7,6 +7,7 @@ interface JsonlEntry {
   sessionId?: string;
   timestamp?: string;
   cwd?: string;
+  payload?: unknown;
   message?: {
     role?: string;
     content?: unknown;
@@ -37,11 +38,25 @@ function toText(content: unknown): string {
   for (const item of content) {
     if (!item || typeof item !== "object") continue;
     const entry = item as Record<string, unknown>;
-    if (entry.type === "text" && typeof entry.text === "string") {
+    if (
+      (entry.type === "text" ||
+        entry.type === "input_text" ||
+        entry.type === "output_text") &&
+      typeof entry.text === "string"
+    ) {
       parts.push(entry.text);
     }
   }
   return parts.join("\n");
+}
+
+function parseJsonObject(text: unknown): unknown {
+  if (typeof text !== "string") return text;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return text;
+  }
 }
 
 function extractToolUses(content: unknown): Array<{ id: string; name: string; input: unknown }> {
@@ -100,14 +115,32 @@ export function parseJsonlText(text: string, fallbackSessionId?: string): Parsed
   for (const entry of entries) {
     if (entry.sessionId && !sessionId) sessionId = entry.sessionId;
     if (entry.cwd && !cwd) cwd = entry.cwd;
+    if (entry.type === "session_meta" && entry.payload && typeof entry.payload === "object") {
+      const payload = entry.payload as Record<string, unknown>;
+      if (typeof payload.id === "string" && !sessionId) sessionId = payload.id;
+      if (typeof payload.cwd === "string" && !cwd) cwd = payload.cwd;
+      continue;
+    }
     const ts = entry.timestamp || new Date().toISOString();
     if (!firstTs) firstTs = ts;
     lastTs = ts;
 
-    const role = entry.message?.role;
-    const content = entry.message?.content;
+    const responsePayload =
+      entry.type === "response_item" && entry.payload && typeof entry.payload === "object"
+        ? (entry.payload as Record<string, unknown>)
+        : null;
+    const message =
+      responsePayload?.type === "message"
+        ? {
+            role: responsePayload.role,
+            content: responsePayload.content,
+          }
+        : entry.message;
 
-    if (entry.type === "user" && role === "user") {
+    const role = message?.role;
+    const content = message?.content;
+
+    if ((entry.type === "user" || entry.type === "response_item") && role === "user") {
       const toolResults = extractToolResults(content);
       if (toolResults.length > 0) {
         for (const result of toolResults) {
@@ -135,7 +168,10 @@ export function parseJsonlText(text: string, fallbackSessionId?: string): Parsed
           });
         }
       }
-    } else if (entry.type === "assistant" && role === "assistant") {
+    } else if (
+      (entry.type === "assistant" || entry.type === "response_item") &&
+      role === "assistant"
+    ) {
       const text = toText(content);
       const tools = extractToolUses(content);
       if (text.trim().length > 0) {
@@ -159,6 +195,29 @@ export function parseJsonlText(text: string, fallbackSessionId?: string): Parsed
           raw: { toolUseId: tool.id, entry },
         });
       }
+    } else if (responsePayload?.type === "function_call") {
+      observations.push({
+        id: generateId("obs"),
+        sessionId: sessionId || "imported",
+        timestamp: ts,
+        hookType: "pre_tool_use" as HookType,
+        toolName: typeof responsePayload.name === "string" ? responsePayload.name : "unknown",
+        toolInput: parseJsonObject(responsePayload.arguments),
+        raw: {
+          callId: responsePayload.call_id,
+          entry,
+        },
+      });
+    } else if (responsePayload?.type === "function_call_output") {
+      observations.push({
+        id: generateId("obs"),
+        sessionId: sessionId || "imported",
+        timestamp: ts,
+        hookType: "post_tool_use" as HookType,
+        toolInput: { toolUseId: responsePayload.call_id },
+        toolOutput: responsePayload.output,
+        raw: entry,
+      });
     } else if (entry.type === "summary" || entry.type === "system") {
       // ignore meta entries
     }
