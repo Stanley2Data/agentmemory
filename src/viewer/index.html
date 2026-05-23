@@ -1066,7 +1066,7 @@
         'tabs.sessions': '会话',
         'tabs.lessons': '经验',
         'tabs.actions': '动作',
-        'tabs.crystals': '晶体',
+        'tabs.crystals': '会话快照',
         'tabs.audit': '审计',
         'tabs.activity': '活动',
         'tabs.profile': '画像',
@@ -1092,7 +1092,7 @@
       'latest versions': '最新版本',
       'Lessons': '经验',
       'confidence-scored': '带置信度',
-      'Crystals': '晶体',
+      'Crystals': '会话快照',
       'action digests': '动作摘要',
       'Graph Nodes': '图谱节点',
       'edges': '边',
@@ -1206,8 +1206,8 @@
       'No lessons yet': '还没有经验',
       'Loading actions...': '正在加载动作...',
       'No actions tracked yet': '还没有跟踪动作',
-      'Loading crystals...': '正在加载晶体...',
-      'No crystals yet': '还没有晶体',
+      'Loading crystals...': '正在加载会话快照...',
+      'No crystals yet': '还没有会话快照',
       'Loading audit log...': '正在加载审计日志...',
       'No audit entries yet': '还没有审计记录',
       'Audit entries are created by governance operations (delete, evolve, consolidate).': '审计记录由治理操作创建，例如删除、演化和固化。',
@@ -1258,7 +1258,7 @@
       'Search memories...': '搜索记忆...',
       'Search lessons...': '搜索经验...',
       'Search actions...': '搜索动作...',
-      'Search crystals...': '搜索晶体...',
+      'Search crystals...': '搜索会话快照...',
       '~/.claude/projects or file.jsonl': '~/.claude/projects 或 file.jsonl',
       'Zoom In': '放大',
       'Zoom Out': '缩小',
@@ -1270,7 +1270,13 @@
       'Memory types →': '记忆类型 →',
       'Lesson decay & scoring →': '经验衰减与评分 →',
       'Action lifecycle docs →': '动作生命周期文档 →',
-      'Crystal pipeline →': '晶体流水线 →',
+      'Crystal pipeline →': '会话快照流水线 →',
+      'are frozen snapshots of completed work. Each crystal captures one session\'s narrative, the tools invoked (key outcomes), files touched, and lessons surfaced — a replayable summary you keep after raw observations are pruned. Auto-created on JSONL import or via': '是已完成工作的压缩快照。每条快照会记录一次会话的摘要、调用过的工具、触达的文件，以及沉淀出的经验。原始观察记录被清理后，它仍可作为可回放的摘要保留。它会在导入 JSONL 时自动创建，也可以通过',
+      'Crystals are compressed action digests — the 3-line summary of what happened in a session. Generated from long conversations to give the next session fast context without re-reading everything.': '会话快照是压缩后的动作摘要，用几行文字说明一次会话里发生了什么。它从长对话中生成，让下一次会话不用重读全部记录也能快速获得上下文。',
+      'Untitled crystal': '未命名会话快照',
+      'TOOLS USED': '使用的工具',
+      'FILES TOUCHED': '触达的文件',
+      'LESSONS SURFACED': '提炼出的经验',
       'Lesson': '经验',
       'Confidence': '置信度',
       'Reinforcements': '强化次数',
@@ -1331,6 +1337,12 @@
           .replace(/^No observations for this session$/, '这个会话还没有观察记录')
           .replace(/^(\d+) actions$/, '$1 个动作')
           .replace(/^(\d+) obs$/, '$1 条观察')
+          .replace(/^(\d+) crystals$/, '$1 条会话快照')
+          .replace(/^(\d+) tools$/, '$1 个工具')
+          .replace(/^(\d+) files$/, '$1 个文件')
+          .replace(/^(\d+) lessons$/, '$1 条经验')
+          .replace(/^\+(\d+) more$/, '+$1 条更多')
+          .replace(/^\+(\d+) more lessons$/, '+$1 条更多经验')
           .replace(/^(\d+) active$/, '$1 个活跃')
           .replace(/^(\d+) edges$/, '$1 条边')
           .replace(/^(\d+) functions tracked$/, '$1 个已跟踪函数')
@@ -1353,6 +1365,12 @@
           .replace(/^这个会话还没有观察记录$/, 'No observations for this session')
           .replace(/^(\d+) 个动作$/, '$1 actions')
           .replace(/^(\d+) 条观察$/, '$1 obs')
+          .replace(/^(\d+) 条会话快照$/, '$1 crystals')
+          .replace(/^(\d+) 个工具$/, '$1 tools')
+          .replace(/^(\d+) 个文件$/, '$1 files')
+          .replace(/^(\d+) 条经验$/, '$1 lessons')
+          .replace(/^\+(\d+) 条更多$/, '+$1 more')
+          .replace(/^\+(\d+) 条更多经验$/, '+$1 more lessons')
           .replace(/^(\d+) 个活跃$/, '$1 active')
           .replace(/^(\d+) 条边$/, '$1 edges')
           .replace(/^(\d+) 个已跟踪函数$/, '$1 functions tracked')
