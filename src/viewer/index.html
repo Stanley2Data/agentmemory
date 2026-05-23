@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>agentmemory viewer</title>
+  <title>agentmemory 可视化</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <!-- Removed Google Fonts <link> in #323: the viewer CSP is strict
        (default-src 'none', style-src 'unsafe-inline', font-src 'self')
@@ -138,6 +138,12 @@
       display: flex;
       align-items: center;
       gap: 12px;
+    }
+    .header-toggle {
+      font-size: 9px;
+      padding: 3px 10px;
+      letter-spacing: 0.1em;
+      min-width: 44px;
     }
     .ws-status {
       font-size: 10px;
@@ -936,30 +942,31 @@
 </head>
 <body>
   <div class="app-header">
-    <a class="brand" href="#dashboard" data-tab-link="dashboard" aria-label="Open dashboard">
+    <a class="brand" href="#dashboard" data-tab-link="dashboard" aria-label="打开仪表盘" data-i18n-attr="aria-label:brand.openDashboard">
       <h1>agentmemory</h1>
       <span class="version">v__AGENTMEMORY_VERSION__</span>
     </a>
     <div class="header-right">
       <span class="dateline" id="dateline"></span>
-      <button id="theme-toggle" class="btn" style="font-size:9px;padding:3px 10px;letter-spacing:0.1em;margin-right:8px;" data-action="toggle-theme">DARK</button>
-      <span id="ws-status" class="ws-status disconnected">live updates off</span>
+      <button id="lang-toggle" class="btn header-toggle" data-action="toggle-language" title="Switch language" data-i18n-attr="title:language.toggleTitle">EN</button>
+      <button id="theme-toggle" class="btn header-toggle" data-action="toggle-theme">DARK</button>
+      <span id="ws-status" class="ws-status disconnected" data-ws-key="ws.off">实时更新关闭</span>
     </div>
   </div>
 
   <div class="tab-bar" id="tab-bar">
-    <button class="active" data-tab="dashboard" aria-current="page">Dashboard</button>
-    <button data-tab="graph">Graph</button>
-    <button data-tab="memories">Memories</button>
-    <button data-tab="timeline">Timeline</button>
-    <button data-tab="sessions">Sessions</button>
-    <button data-tab="lessons">Lessons</button>
-    <button data-tab="actions">Actions</button>
-    <button data-tab="crystals">Crystals</button>
-    <button data-tab="audit">Audit</button>
-    <button data-tab="activity">Activity</button>
-    <button data-tab="profile">Profile</button>
-    <button data-tab="replay">Replay</button>
+    <button class="active" data-tab="dashboard" aria-current="page" data-i18n="tabs.dashboard">仪表盘</button>
+    <button data-tab="graph" data-i18n="tabs.graph">图谱</button>
+    <button data-tab="memories" data-i18n="tabs.memories">记忆</button>
+    <button data-tab="timeline" data-i18n="tabs.timeline">时间线</button>
+    <button data-tab="sessions" data-i18n="tabs.sessions">会话</button>
+    <button data-tab="lessons" data-i18n="tabs.lessons">经验</button>
+    <button data-tab="actions" data-i18n="tabs.actions">动作</button>
+    <button data-tab="crystals" data-i18n="tabs.crystals">晶体</button>
+    <button data-tab="audit" data-i18n="tabs.audit">审计</button>
+    <button data-tab="activity" data-i18n="tabs.activity">活动</button>
+    <button data-tab="profile" data-i18n="tabs.profile">画像</button>
+    <button data-tab="replay" data-i18n="tabs.replay">回放</button>
   </div>
 
   <div id="flag-banners" class="flag-banners"></div>
@@ -982,13 +989,13 @@
   </div>
 
   <footer id="viewer-footer" class="viewer-footer">
-    <span>agentmemory viewer · <span id="footer-version">loading...</span></span>
+    <span><span data-i18n="footer.viewer">agentmemory 可视化</span> · <span id="footer-version">loading...</span></span>
     <span class="footer-sep">·</span>
     <a href="https://github.com/rohitg00/agentmemory" target="_blank" rel="noopener">github</a>
     <span class="footer-sep">·</span>
-    <a href="https://github.com/rohitg00/agentmemory#readme" target="_blank" rel="noopener">docs</a>
+    <a href="https://github.com/rohitg00/agentmemory#readme" target="_blank" rel="noopener" data-i18n="footer.docs">文档</a>
     <span class="footer-sep">·</span>
-    <a id="footer-feedback" href="#" target="_blank" rel="noopener">report issue &rarr;</a>
+    <a id="footer-feedback" href="#" target="_blank" rel="noopener" data-i18n="footer.feedback">反馈问题 &rarr;</a>
   </footer>
 
   <script nonce="__AGENTMEMORY_VIEWER_NONCE__">
@@ -1018,14 +1025,413 @@
       WS_DIRECT_URL = WS_URL + '/stream/mem-live/viewer';
     }
 
-    var dateEl = document.getElementById('dateline');
-    if (dateEl) dateEl.textContent = new Date().toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+    var I18N = {
+      en: {
+        'app.title': 'agentmemory viewer',
+        'brand.openDashboard': 'Open dashboard',
+        'language.toggleTitle': 'Switch language',
+        'footer.viewer': 'agentmemory viewer',
+        'footer.docs': 'docs',
+        'footer.feedback': 'report issue →',
+        'tabs.dashboard': 'Dashboard',
+        'tabs.graph': 'Graph',
+        'tabs.memories': 'Memories',
+        'tabs.timeline': 'Timeline',
+        'tabs.sessions': 'Sessions',
+        'tabs.lessons': 'Lessons',
+        'tabs.actions': 'Actions',
+        'tabs.crystals': 'Crystals',
+        'tabs.audit': 'Audit',
+        'tabs.activity': 'Activity',
+        'tabs.profile': 'Profile',
+        'tabs.replay': 'Replay',
+        'theme.light': 'LIGHT',
+        'theme.dark': 'DARK',
+        'ws.off': 'live updates off',
+        'ws.live': 'live',
+        'ws.connecting': 'connecting...',
+        'ws.polling': 'polling · {seconds}s',
+      },
+      zh: {
+        'app.title': 'agentmemory 可视化',
+        'brand.openDashboard': '打开仪表盘',
+        'language.toggleTitle': '切换语言',
+        'footer.viewer': 'agentmemory 可视化',
+        'footer.docs': '文档',
+        'footer.feedback': '反馈问题 →',
+        'tabs.dashboard': '仪表盘',
+        'tabs.graph': '图谱',
+        'tabs.memories': '记忆',
+        'tabs.timeline': '时间线',
+        'tabs.sessions': '会话',
+        'tabs.lessons': '经验',
+        'tabs.actions': '动作',
+        'tabs.crystals': '晶体',
+        'tabs.audit': '审计',
+        'tabs.activity': '活动',
+        'tabs.profile': '画像',
+        'tabs.replay': '回放',
+        'theme.light': '浅色',
+        'theme.dark': '深色',
+        'ws.off': '实时更新关闭',
+        'ws.live': '实时',
+        'ws.connecting': '连接中...',
+        'ws.polling': '轮询 · {seconds}s',
+      }
+    };
+    var ZH_PHRASES = {
+      'Loading dashboard...': '正在加载仪表盘...',
+      'Dashboard failed to load:': '仪表盘加载失败：',
+      'Check the browser console for the full error. If you see CSP violations, please open an issue with the agentmemory version (top-right of the viewer) and the violation text.': '请查看浏览器控制台获取完整错误。如果看到 CSP 违规，请带上右上角显示的 agentmemory 版本和违规文本提交 issue。',
+      'First run → magical moment in 10 seconds': '首次运行：10 秒体验完整效果',
+      'Seed sample data + prove semantic recall works': '写入示例数据并验证语义召回',
+      'Or: wire up your real agent →': '或者：接入你的真实 agent →',
+      'Sessions': '会话',
+      'active': '活跃',
+      'Memories': '记忆',
+      'latest versions': '最新版本',
+      'Lessons': '经验',
+      'confidence-scored': '带置信度',
+      'Crystals': '晶体',
+      'action digests': '动作摘要',
+      'Graph Nodes': '图谱节点',
+      'edges': '边',
+      'Health': '健康状态',
+      'unknown': '未知',
+      'Function Calls': '函数调用',
+      'functions tracked': '已跟踪函数',
+      'Circuit Breaker': '熔断器',
+      'failures': '失败',
+      'Token Savings': 'Token 节省',
+      'tokens saved': '已节省 token',
+      'System Resources': '系统资源',
+      'Heap': '堆内存',
+      'RSS': 'RSS',
+      'External': '外部内存',
+      'CPU': 'CPU',
+      'Event Loop': '事件循环',
+      'UPTIME': '运行时间',
+      'Alerts': '告警',
+      'ALERTS': '告警',
+      'Notes': '提示',
+      'NOTES': '提示',
+      'Recent Sessions': '最近会话',
+      'No sessions yet. Start a coding session with agentmemory hooks enabled.': '还没有会话。请在启用 agentmemory hooks 后开始一次编码会话。',
+      'Project': '项目',
+      'Status': '状态',
+      'Obs': '观察',
+      'Started': '开始时间',
+      'Recent Activity': '最近活动',
+      'No activity recorded yet': '还没有活动记录',
+      'Function Metrics (OTel)': '函数指标 (OTel)',
+      'Function': '函数',
+      'Calls': '调用',
+      'Success': '成功',
+      'Fail': '失败',
+      'Avg Latency': '平均延迟',
+      'Quality': '质量',
+      'Workers': 'Worker',
+      'Circuit Breaker Details': '熔断器详情',
+      'State': '状态',
+      'Failures': '失败次数',
+      'Last Failure': '最近失败',
+      'Opened At': '打开时间',
+      'Semantic Memory': '语义记忆',
+      'No semantic facts yet. Observations will be consolidated into semantic memories over time.': '还没有语义事实。观察记录会逐步固化成语义记忆。',
+      'Fact': '事实',
+      'Procedural Memory': '流程记忆',
+      'No procedures yet. Repeated patterns will be extracted as procedures.': '还没有流程。重复模式会被提取成流程记忆。',
+      'Procedure': '流程',
+      'Trigger:': '触发：',
+      'Freq:': '频率：',
+      'Consolidation Status': '固化状态',
+      'Semantic facts': '语义事实',
+      'Procedures': '流程',
+      'Relations': '关系',
+      'Memory Relations': '记忆关系',
+      'Refresh': '刷新',
+      'Auto-refresh 30s': '30 秒自动刷新',
+      'Graph': '图谱',
+      'No graph data yet. Building from observations and memories...': '还没有图谱数据。正在根据观察和记忆构建...',
+      'Graph Stats': '图谱统计',
+      'Nodes': '节点',
+      'Edges': '边',
+      'Filter by Type': '按类型过滤',
+      'Legend': '图例',
+      'Rebuild Graph': '重建图谱',
+      'connection(s)': '个连接',
+      'Type': '类型',
+      'Connections': '连接',
+      'Expand neighbors': '展开相邻节点',
+      'Rebuilding graph from observations...': '正在根据观察记录重建图谱...',
+      'No graph data yet.': '还没有图谱数据。',
+      'Loading memories...': '正在加载记忆...',
+      'Memory is deleted from the viewer immediately.': '记忆会立即从可视化页面删除。',
+      'All types': '全部类型',
+      'No memories yet': '还没有记忆',
+      'Title': '标题',
+      'Strength': '强度',
+      'Version': '版本',
+      'Updated': '更新时间',
+      'Actions': '操作',
+      'Delete': '删除',
+      'Delete Memory': '删除记忆',
+      'Cancel': '取消',
+      'Loading timeline...': '正在加载时间线...',
+      'Select session': '选择会话',
+      'All importance': '全部重要度',
+      'Select a session to view observations': '选择一个会话查看观察记录',
+      'Loading observations...': '正在加载观察记录...',
+      'raw': '原始',
+      'Input:': '输入：',
+      'Output:': '输出：',
+      'Prev': '上一页',
+      'Next': '下一页',
+      'Loading activity...': '正在加载活动...',
+      'Activity Heatmap (Past Year)': '活动热力图（过去一年）',
+      'Less': '少',
+      'More': '多',
+      'Type Breakdown': '类型分布',
+      'No observations yet': '还没有观察记录',
+      'Activity Feed': '活动流',
+      'No recent activity': '暂无最近活动',
+      'Loading sessions...': '正在加载会话...',
+      'No sessions': '没有会话',
+      'Loading session details…': '正在加载会话详情...',
+      'End Session': '结束会话',
+      'Summarize': '总结',
+      'Summarizing...': '正在总结...',
+      'Done': '完成',
+      'Loading lessons...': '正在加载经验...',
+      'No lessons yet': '还没有经验',
+      'Loading actions...': '正在加载动作...',
+      'No actions tracked yet': '还没有跟踪动作',
+      'Loading crystals...': '正在加载晶体...',
+      'No crystals yet': '还没有晶体',
+      'Loading audit log...': '正在加载审计日志...',
+      'No audit entries yet': '还没有审计记录',
+      'Audit entries are created by governance operations (delete, evolve, consolidate).': '审计记录由治理操作创建，例如删除、演化和固化。',
+      'Loading profile...': '正在加载画像...',
+      'No projects': '没有项目',
+      'Loading profile data...': '正在加载画像数据...',
+      'No profile data for this project': '这个项目还没有画像数据',
+      'No concepts yet': '还没有概念',
+      'No files yet': '还没有文件',
+      'No conventions detected yet': '还没有检测到约定',
+      'No LLM provider key set': '未设置 LLM provider key',
+      'Compression, summarization, and graph extraction stay disabled until a key is provided.': '在提供 key 之前，压缩、总结和图谱抽取会保持禁用。',
+      'Running in BM25-only mode': '正在以 BM25-only 模式运行',
+      'Semantic vector search is off. BM25 keyword search is active and good for exact matches.': '语义向量搜索已关闭。BM25 关键词搜索仍可用于精确匹配。',
+      'Learn more →': '了解更多 →',
+      'Feature flags': '功能开关',
+      'click to collapse': '点击收起',
+      'click to expand': '点击展开',
+      '— click to collapse': '— 点击收起',
+      '— click to expand': '— 点击展开',
+      'connected': '已连接',
+      'healthy': '健康',
+      'degraded': '降级',
+      'critical': '严重',
+      'CLOSED': '关闭',
+      'closed': '关闭',
+      'OPEN': '打开',
+      'open': '打开',
+      'HALF-OPEN': '半开',
+      'half-open': '半开',
+      'saved': '已节省',
+      'Loading sessions…': '正在加载会话...',
+      'Refresh': '刷新',
+      'Import JSONL': '导入 JSONL',
+      'Pick a session to replay, or import Claude Code JSONL transcripts from ~/.claude/projects.': '选择一个会话进行回放，或从 ~/.claude/projects 导入 Claude Code JSONL 转录。',
+      'No event selected.': '未选择事件。',
+      'Tool:': '工具：',
+      'Input': '输入',
+      'Output': '输出',
+      'Loading replay…': '正在加载回放...',
+      'Speed': '速度',
+      'Pause': '暂停',
+      'Play': '播放',
+      'Previous': '上一个',
+      'Next': '下一个',
+      'Reset': '重置',
+      'Search nodes...': '搜索节点...',
+      'Search memories...': '搜索记忆...',
+      'Search lessons...': '搜索经验...',
+      'Search actions...': '搜索动作...',
+      'Search crystals...': '搜索晶体...',
+      '~/.claude/projects or file.jsonl': '~/.claude/projects 或 file.jsonl',
+      'Zoom In': '放大',
+      'Zoom Out': '缩小',
+      'Recenter': '居中',
+      'Play/Pause (Space)': '播放/暂停（空格）',
+      'Dismiss': '关闭',
+      'Unknown session': '未知会话',
+      'missing id': '缺少 id',
+      'Memory types →': '记忆类型 →',
+      'Lesson decay & scoring →': '经验衰减与评分 →',
+      'Action lifecycle docs →': '动作生命周期文档 →',
+      'Crystal pipeline →': '晶体流水线 →',
+      'Lesson': '经验',
+      'Confidence': '置信度',
+      'Reinforcements': '强化次数',
+      'Source': '来源',
+      'Priority': '优先级',
+      'Tags': '标签',
+      'Frontier': '前沿',
+      'All statuses': '全部状态',
+      'pending': '待处理',
+      'active': '活跃',
+      'done': '完成',
+      'blocked': '阻塞',
+      'cancelled': '已取消',
+      'Tool Invocations': '工具调用',
+      'Files': '文件',
+      'Session': '会话',
+      'Top Concepts': '高频概念',
+      'Top Files': '高频文件',
+      'Conventions': '约定',
+      'Project Summary': '项目总结',
+      'Total Obs': '观察总数',
+      '— pick a session —': '— 选择会话 —',
+    };
+    var EN_PHRASES = Object.keys(ZH_PHRASES).reduce(function(acc, key) {
+      acc[ZH_PHRASES[key]] = key;
+      return acc;
+    }, {});
+    var lang = localStorage.getItem('agentmemory-lang') === 'en' ? 'en' : 'zh';
+    var wsStatusKey = 'ws.off';
+    var wsStatusVars = {};
+
+    function t(key, vars) {
+      var table = I18N[lang] || I18N.zh;
+      var value = table[key] || I18N.en[key] || key;
+      Object.keys(vars || {}).forEach(function(k) {
+        value = value.replace('{' + k + '}', vars[k]);
+      });
+      return value;
+    }
+    function currentLocale() { return lang === 'zh' ? 'zh-CN' : 'en-US'; }
+    function updateDateLine() {
+      var dateEl = document.getElementById('dateline');
+      if (dateEl) dateEl.textContent = new Date().toLocaleDateString(currentLocale(), { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+    }
+    function translateTextValue(value) {
+      if (!value || !/[A-Za-z\u4e00-\u9fff]/.test(value)) return value;
+      var leading = value.match(/^\s*/)[0];
+      var trailing = value.match(/\s*$/)[0];
+      var core = value.slice(leading.length, value.length - trailing.length);
+      var map = lang === 'zh' ? ZH_PHRASES : EN_PHRASES;
+      if (map[core]) return leading + map[core] + trailing;
+      if (lang === 'zh') {
+        core = core
+          .replace(/^All \((\d+)\)$/, '全部 ($1)')
+          .replace(/^(\d+) observations shown$/, '已显示 $1 条观察记录')
+          .replace(/^Page (\d+) of (\d+) \((\d+) total\)$/, '第 $1 / $2 页（共 $3 条）')
+          .replace(/^No observations match the filter \((\d+) total\)$/, '没有观察记录匹配过滤条件（共 $1 条）')
+          .replace(/^No observations for this session$/, '这个会话还没有观察记录')
+          .replace(/^(\d+) actions$/, '$1 个动作')
+          .replace(/^(\d+) obs$/, '$1 条观察')
+          .replace(/^(\d+) active$/, '$1 个活跃')
+          .replace(/^(\d+) edges$/, '$1 条边')
+          .replace(/^(\d+) functions tracked$/, '$1 个已跟踪函数')
+          .replace(/^(\d+) failures$/, '$1 次失败')
+          .replace(/^(.+) saved$/, '$1 已节省')
+          .replace(/^Alerts \((\d+)\)$/, '告警 ($1)')
+          .replace(/^Notes \((\d+)\)$/, '提示 ($1)')
+          .replace(/^Session · (.+)$/, '会话 · $1')
+          .replace(/^Are you sure you want to delete "(.+)"\? This action cannot be undone\.$/, '确定要删除“$1”吗？此操作无法撤销。')
+          .replace(/^(\d+) off$/, '$1 个关闭')
+          .replace(/^(\d+) note$/, '$1 条提示')
+          .replace(/^(\d+) event(s?)$/, '$1 个事件')
+          .replace(/^(.+): (\d+) events?$/, '$1：$2 个事件');
+      } else {
+        core = core
+          .replace(/^全部 \((\d+)\)$/, 'All ($1)')
+          .replace(/^已显示 (\d+) 条观察记录$/, '$1 observations shown')
+          .replace(/^第 (\d+) \/ (\d+) 页（共 (\d+) 条）$/, 'Page $1 of $2 ($3 total)')
+          .replace(/^没有观察记录匹配过滤条件（共 (\d+) 条）$/, 'No observations match the filter ($1 total)')
+          .replace(/^这个会话还没有观察记录$/, 'No observations for this session')
+          .replace(/^(\d+) 个动作$/, '$1 actions')
+          .replace(/^(\d+) 条观察$/, '$1 obs')
+          .replace(/^(\d+) 个活跃$/, '$1 active')
+          .replace(/^(\d+) 条边$/, '$1 edges')
+          .replace(/^(\d+) 个已跟踪函数$/, '$1 functions tracked')
+          .replace(/^(\d+) 次失败$/, '$1 failures')
+          .replace(/^(.+) 已节省$/, '$1 saved')
+          .replace(/^告警 \((\d+)\)$/, 'Alerts ($1)')
+          .replace(/^提示 \((\d+)\)$/, 'Notes ($1)')
+          .replace(/^会话 · (.+)$/, 'Session · $1')
+          .replace(/^确定要删除“(.+)”吗？此操作无法撤销。$/, 'Are you sure you want to delete "$1"? This action cannot be undone.')
+          .replace(/^(\d+) 个关闭$/, '$1 off')
+          .replace(/^(\d+) 条提示$/, '$1 note')
+          .replace(/^(\d+) 个事件$/, '$1 events');
+      }
+      return leading + core + trailing;
+    }
+    function localizeAttributes(root) {
+      (root || document).querySelectorAll('[placeholder], [title], [aria-label]').forEach(function(el) {
+        ['placeholder', 'title', 'aria-label'].forEach(function(attr) {
+          if (!el.hasAttribute(attr)) return;
+          var next = translateTextValue(el.getAttribute(attr));
+          if (next !== el.getAttribute(attr)) el.setAttribute(attr, next);
+        });
+      });
+    }
+    function localizeTextNodes(root) {
+      var walker = document.createTreeWalker(root || document.body, NodeFilter.SHOW_TEXT, {
+        acceptNode: function(node) {
+          var parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          if (parent.closest('script,style,pre,code,textarea,input')) return NodeFilter.FILTER_REJECT;
+          if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      });
+      var nodes = [];
+      while (walker.nextNode()) nodes.push(walker.currentNode);
+      nodes.forEach(function(node) {
+        var next = translateTextValue(node.nodeValue);
+        if (next !== node.nodeValue) node.nodeValue = next;
+      });
+    }
+    function localizeDynamic(root) {
+      localizeAttributes(root || document);
+      localizeTextNodes(root || document.body);
+    }
+    function applyLanguage(next, persist) {
+      lang = next === 'en' ? 'en' : 'zh';
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      document.title = t('app.title');
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        el.innerHTML = t(el.getAttribute('data-i18n'));
+      });
+      document.querySelectorAll('[data-i18n-attr]').forEach(function(el) {
+        el.getAttribute('data-i18n-attr').split(';').forEach(function(pair) {
+          var parts = pair.split(':');
+          if (parts.length === 2) el.setAttribute(parts[0].trim(), t(parts[1].trim()));
+        });
+      });
+      var langBtn = document.getElementById('lang-toggle');
+      if (langBtn) langBtn.textContent = lang === 'zh' ? 'EN' : '中';
+      updateDateLine();
+      updateWsStatusText();
+      applyTheme(isDarkMode(), false);
+      localizeDynamic(document.body);
+      if (persist) localStorage.setItem('agentmemory-lang', lang);
+    }
+    function updateWsStatusText() {
+      var el = document.getElementById('ws-status');
+      if (el) el.textContent = t(wsStatusKey, wsStatusVars);
+    }
+    window.toggleLanguage = function() {
+      applyLanguage(lang === 'zh' ? 'en' : 'zh', true);
+    };
 
     function isDarkMode() { return document.documentElement.dataset.theme === 'dark'; }
     function applyTheme(dark, persist) {
       document.documentElement.dataset.theme = dark ? 'dark' : 'light';
       var btn = document.getElementById('theme-toggle');
-      if (btn) btn.textContent = dark ? 'LIGHT' : 'DARK';
+      if (btn) btn.textContent = dark ? t('theme.light') : t('theme.dark');
       if (persist) localStorage.setItem('agentmemory-theme', dark ? 'dark' : 'light');
     }
     window.toggleTheme = function() { applyTheme(!isDarkMode(), true); };
@@ -1035,6 +1441,16 @@
     } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
       applyTheme(true, false);
     }
+    applyLanguage(lang, false);
+    var translateObserver = new MutationObserver(function(records) {
+      records.forEach(function(record) {
+        record.addedNodes.forEach(function(node) {
+          if (node.nodeType === Node.ELEMENT_NODE) localizeDynamic(node);
+          if (node.nodeType === Node.TEXT_NODE && node.parentElement) localizeDynamic(node.parentElement);
+        });
+      });
+    });
+    translateObserver.observe(document.body, { childList: true, subtree: true });
 
     var NODE_COLORS = {
       file: '#2D6A4F', function: '#1D4E89', concept: '#B8860B', error: '#CC0000',
@@ -3321,8 +3737,21 @@
     function setWsStatus(text, cls) {
       var el = document.getElementById('ws-status');
       if (!el) return;
-      el.textContent = text;
+      wsStatusKey = text;
+      wsStatusVars = {};
+      if (text.indexOf('polling') === 0) {
+        wsStatusKey = 'ws.polling';
+        wsStatusVars = { seconds: String(POLL_INTERVAL_MS / 1000) };
+      } else if (text === 'live') {
+        wsStatusKey = 'ws.live';
+      } else if (text === 'connecting...') {
+        wsStatusKey = 'ws.connecting';
+      } else if (text === 'live updates off') {
+        wsStatusKey = 'ws.off';
+      }
+      el.textContent = t(wsStatusKey, wsStatusVars);
       el.className = 'ws-status ' + cls;
+      el.setAttribute('data-ws-key', wsStatusKey);
     }
 
     var WS_REPROBE_EVERY_TICKS = 6;
@@ -3671,6 +4100,10 @@
       var action = target.getAttribute('data-action');
       if (!action) return;
 
+      if (action === 'toggle-language') {
+        toggleLanguage();
+        return;
+      }
       if (action === 'toggle-theme') {
         toggleTheme();
         return;
